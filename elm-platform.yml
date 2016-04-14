@@ -34,6 +34,31 @@ resources:
   source:
     uri: https://github.com/elm-lang/elm-repl.git
     branch: 0.16
+- name: elm-compiler-master
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-compiler.git
+    branch: master
+- name: elm-package-master
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-package.git
+    branch: master
+- name: elm-make-master
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-make.git
+    branch: master
+- name: elm-reactor-master
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-reactor.git
+    branch: master
+- name: elm-repl-master
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-repl.git
+    branch: master
 
 jobs:
 - name: build-elm-format
@@ -68,6 +93,26 @@ jobs:
     trigger: true
   - get: elm-repl
     resource: elm-repl-0.16
+    trigger: true
+  - task: build-elm-platform
+    file: elm-platform-ci/tasks/build-elm-compiler.yml
+- name: elm-platform-master
+  plan:
+  - get: elm-platform-ci
+  - get: elm-compiler
+    resource: elm-compiler-master
+    trigger: true
+  - get: elm-package
+    resource: elm-package-master
+    trigger: true
+  - get: elm-make
+    resource: elm-make-master
+    trigger: true
+  - get: elm-reactor
+    resource: elm-reactor-master
+    trigger: true
+  - get: elm-repl
+    resource: elm-repl-master
     trigger: true
   - task: build-elm-platform
     file: elm-platform-ci/tasks/build-elm-compiler.yml
