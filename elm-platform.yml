@@ -9,6 +9,15 @@ resources:
   source:
     uri: https://github.com/avh4/elm-format.git
     branch: concourse
+- name: elm-format-version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:avh4/elm-format.git
+    branch: version
+    file: VERSION
+    private_key: {{github-private-key}}
+    initial_version: 0.3.0-alpha
 - name: elm-compiler-0.16
   type: git
   source:
@@ -76,6 +85,27 @@ jobs:
         path: .
       run:
         path: ./ci.sh
+- name: elm-format-rc
+  serial_groups: [elm-format-version]
+  plan:
+  - get: elm-format-src
+    passed: [build-elm-format]
+    trigger: true
+  - get: elm-format-version
+    params: {pre: alpha-dev}
+  - task: build
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: haskell, tag: "7.10.3"}
+      inputs:
+      - name: elm-format-src
+        path: .
+      run:
+        path: ls
+  - put: elm-format-version
+    params: {file: elm-format-version/number}
 - name: elm-platform-0.16
   plan:
   - get: elm-platform-ci
