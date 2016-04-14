@@ -1,0 +1,22 @@
+resources:
+- name: elm-format-src
+  type: git
+  source:
+    uri: https://github.com/avh4/elm-format.git
+    branch: concourse
+
+jobs:
+- name: build-elm-format
+  plan:
+  - get: elm-format-src
+    trigger: true
+  - task: elm-format-tests
+    config:
+      platform: linux
+      image: docker:///haskell#7.10.3
+      inputs:
+      - name: elm-format-src
+        path: .
+      run:
+        path: ./ci.sh
+        
