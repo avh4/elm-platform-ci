@@ -26,11 +26,11 @@ jobs:
         path: .
       run:
         path: ./ci.sh
-- name: build-elm-compiler
+- name: elm-compiler
   plan:
   - get: elm-compiler-src
     trigger: true
-  - task: elm-compiler-make
+  - task: elm-compiler-tests
     config:
       platform: linux
       image_resource:
@@ -47,5 +47,5 @@ jobs:
           cabal update
           cabal sandbox init
           cabal sandbox add-source elm-compiler
-          cabal install -j --only-dependencies elm-compiler
-          cabal install -j elm-compiler
+          cabal install -j --only-dependencies --enable-tests elm-compiler
+          cabal test elm-compiler
