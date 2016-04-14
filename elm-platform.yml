@@ -4,6 +4,11 @@ resources:
   source:
     uri: https://github.com/avh4/elm-format.git
     branch: concourse
+- name: elm-compiler-src
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-compiler.git
+    branch: master
 
 jobs:
 - name: build-elm-format
@@ -21,4 +26,26 @@ jobs:
         path: .
       run:
         path: ./ci.sh
-        
+- name: build-elm-compiler
+  plan:
+  - get: elm-compiler-src
+    trigger: true
+  - task: elm-compiler-make
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: haskell, tag: "7.10.3"}
+      inputs:
+      - name: elm-compiler-src
+        path: elm-compiler
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cabal update
+          cabal sandbox init
+          cabal sandbox add-source elm-compiler
+          cabal install -j --only-dependencies elm-compiler
+          cabal install -j elm-compiler
