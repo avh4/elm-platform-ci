@@ -1,10 +1,20 @@
+groups:
+- name: stable
+  jobs:
+  - elm-platform-0.16
+  - elm-format
+  - elm-format-rc
+- name: master
+  jobs:
+  - elm-platform-master
+
 resources:
 - name: elm-platform-ci
   type: git
   source:
     uri: https://github.com/avh4/elm-platform-ci.git
     branch: master
-- name: elm-format-src
+- name: elm-format
   type: git
   source:
     uri: https://github.com/avh4/elm-format.git
@@ -70,9 +80,9 @@ resources:
     branch: master
 
 jobs:
-- name: build-elm-format
+- name: elm-format
   plan:
-  - get: elm-format-src
+  - get: elm-format
     trigger: true
   - task: elm-format-tests
     config:
@@ -81,15 +91,15 @@ jobs:
         type: docker-image
         source: {repository: haskell, tag: "7.10.3"}
       inputs:
-      - name: elm-format-src
+      - name: elm-format
         path: .
       run:
         path: ./ci.sh
 - name: elm-format-rc
   serial_groups: [elm-format-version]
   plan:
-  - get: elm-format-src
-    passed: [build-elm-format]
+  - get: elm-format
+    passed: [elm-format]
     trigger: true
   - get: elm-format-version
     params: {pre: alpha-dev}
@@ -100,7 +110,7 @@ jobs:
         type: docker-image
         source: {repository: haskell, tag: "7.10.3"}
       inputs:
-      - name: elm-format-src
+      - name: elm-format
         path: .
       run:
         path: ls
