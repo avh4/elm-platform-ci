@@ -109,40 +109,42 @@ jobs:
 - name: elm-platform-0.16
   plan:
   - get: elm-platform-ci
-  - get: elm-compiler
-    resource: elm-compiler-0.16
-    trigger: true
-  - get: elm-package
-    resource: elm-package-0.16
-    trigger: true
-  - get: elm-make
-    resource: elm-make-0.16
-    trigger: true
-  - get: elm-reactor
-    resource: elm-reactor-0.16
-    trigger: true
-  - get: elm-repl
-    resource: elm-repl-0.16
-    trigger: true
+  - aggregate:
+    - get: elm-compiler
+      resource: elm-compiler-0.16
+      trigger: true
+    - get: elm-package
+      resource: elm-package-0.16
+      trigger: true
+    - get: elm-make
+      resource: elm-make-0.16
+      trigger: true
+    - get: elm-reactor
+      resource: elm-reactor-0.16
+      trigger: true
+    - get: elm-repl
+      resource: elm-repl-0.16
+      trigger: true
   - task: build-elm-platform
     file: elm-platform-ci/tasks/build-elm-compiler.yml
 - name: elm-platform-master
   plan:
   - get: elm-platform-ci
-  - get: elm-compiler
-    resource: elm-compiler-master
-    trigger: true
-  - get: elm-package
-    resource: elm-package-master
-    trigger: true
-  - get: elm-make
-    resource: elm-make-master
-    trigger: true
-  - get: elm-reactor
-    resource: elm-reactor-master
-    trigger: true
-  - get: elm-repl
-    resource: elm-repl-master
-    trigger: true
+  - aggregate:
+    - get: elm-compiler
+      resource: elm-compiler-master
+      trigger: true
+    - get: elm-package
+      resource: elm-package-master
+      trigger: true
+    - get: elm-make
+      resource: elm-make-master
+      trigger: true
+    - get: elm-reactor
+      resource: elm-reactor-master
+      trigger: true
+    - get: elm-repl
+      resource: elm-repl-master
+      trigger: true
   - task: build-elm-platform
     file: elm-platform-ci/tasks/build-elm-compiler.yml
