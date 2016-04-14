@@ -1,0 +1,22 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source: {repository: haskell, tag: "7.10.3"}
+inputs:
+- name: elm-compiler
+- name: elm-package
+- name: elm-make
+- name: elm-reactor
+- name: elm-repl
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    cabal --version
+    cabal update
+    cabal sandbox init
+    cabal sandbox add-source elm-compiler elm-package elm-make elm-reactor elm-repl
+    cabal install -j --only-dependencies --ghc-options="-w" elm-compiler elm-package elm-make elm-reactor elm-repl
+    cabal install -j elm-compiler elm-package elm-make elm-repl
+    cabal install -j elm-reactor

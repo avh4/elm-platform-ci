@@ -1,14 +1,39 @@
 resources:
+- name: elm-platform-ci
+  type: git
+  source:
+    uri: https://github.com/avh4/elm-platform-ci.git
+    branch: master
 - name: elm-format-src
   type: git
   source:
     uri: https://github.com/avh4/elm-format.git
     branch: concourse
-- name: elm-compiler-src
+- name: elm-compiler-0.16
   type: git
   source:
     uri: https://github.com/elm-lang/elm-compiler.git
-    branch: master
+    branch: 0.16
+- name: elm-package-0.16
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-package.git
+    branch: 0.16
+- name: elm-make-0.16
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-make.git
+    branch: 0.16
+- name: elm-reactor-0.16
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-reactor.git
+    branch: 0.16
+- name: elm-repl-0.16
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-repl.git
+    branch: 0.16
 
 jobs:
 - name: build-elm-format
@@ -26,26 +51,23 @@ jobs:
         path: .
       run:
         path: ./ci.sh
-- name: elm-compiler
+- name: elm-platform-0.16
   plan:
-  - get: elm-compiler-src
+  - get: elm-platform-ci
+  - get: elm-compiler
+    resource: elm-compiler-0.16
     trigger: true
-  - task: elm-compiler-tests
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: {repository: haskell, tag: "7.10.3"}
-      inputs:
-      - name: elm-compiler-src
-        path: elm-compiler
-      run:
-        path: sh
-        args:
-        - -exc
-        - |
-          cabal update
-          cabal sandbox init
-          cabal sandbox add-source elm-compiler
-          cabal install -j --only-dependencies --enable-tests elm-compiler
-          cabal test elm-compiler
+  - get: elm-package
+    resource: elm-package-0.16
+    trigger: true
+  - get: elm-make
+    resource: elm-make-0.16
+    trigger: true
+  - get: elm-reactor
+    resource: elm-reactor-0.16
+    trigger: true
+  - get: elm-repl
+    resource: elm-repl-0.16
+    trigger: true
+  - task: build-elm-platform
+    file: elm-platform-ci/tasks/build-elm-compiler.yml
