@@ -78,6 +78,14 @@ resources:
   source:
     uri: https://github.com/elm-lang/elm-repl.git
     branch: master
+- name: publish-elm-format-rc
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    secret_access_key: {{aws-secret-access-key}}
+    bucket: concourse-demo-elm-platform
+    region_name: us-west-2
+    versioned_file: elm-format-linux-x64
 
 jobs:
 - name: elm-format
@@ -111,9 +119,22 @@ jobs:
         source: {repository: haskell, tag: "7.10.3"}
       inputs:
       - name: elm-format
-        path: .
+      outputs:
+      - name: concourse-output
       run:
-        path: ls
+        path: sh
+        args:
+        - -exc
+        - |
+          cd elm-format
+          cabal update
+          cabal install --only-dependencies
+          cabal install
+          ls -R
+          cp dist/build/elm-format/elm-format ../concourse-output/
+  - put: publish-elm-format-rc
+    params:
+      file: concourse-output/elm-format
   - put: elm-format-version
     params: {file: elm-format-version/number}
 - name: elm-platform-0.16
