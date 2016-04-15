@@ -7,6 +7,15 @@ groups:
 - name: master
   jobs:
   - elm-platform-master
+- name: PRs
+  jobs:
+  - elm-format-pr
+
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: jtarchie/pr
 
 resources:
 - name: elm-platform-ci
@@ -86,6 +95,11 @@ resources:
     bucket: concourse-demo-elm-platform
     region_name: us-west-2
     versioned_file: elm-format-linux-x64
+- name: elm-format-pr
+  type: pull-request
+  source:
+    repo: avh4/elm-format
+    access_token: {{github-access-token}}
 
 jobs:
 - name: elm-format
@@ -179,3 +193,32 @@ jobs:
       trigger: true
   - task: build-elm-platform
     file: elm-platform-ci/tasks/build-elm-compiler.yml
+- name: elm-format-pr
+  plan:
+  - get: elm-format-pr
+    trigger: true
+  - put: elm-format-pr
+    params:
+      path: elm-format-pr
+      status: pending
+  - task: build
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: haskell, tag: "7.10.3"}
+      inputs:
+      - name: elm-format-pr
+        path: .
+      run:
+        path: ./ci.sh
+    on_success:
+      put: elm-format-pr
+      params:
+        path: elm-format-pr
+        status: success
+    on_failure:
+      put: elm-format-pr
+      params:
+        path: elm-format-pr
+        status: failure
