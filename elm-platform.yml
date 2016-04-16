@@ -5,6 +5,7 @@ groups:
   - elm-format
   - elm-format-rc
   - elm-lang:core
+  - elm-lang.org
 - name: master
   jobs:
   - elm-platform-master
@@ -120,6 +121,11 @@ resources:
   type: git
   source:
     uri: https://github.com/elm-lang/core.git
+    branch: master
+- name: elm-lang.org
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-lang.org.git
     branch: master
 - name: publish-elm-format-rc
   type: s3
@@ -276,3 +282,14 @@ jobs:
     trigger: true
   - task: test
     file: elm-platform-ci/tasks/build-elm-lang-core.yml
+- name: elm-lang.org
+  plan:
+  - get: elm-platform-ci
+  - get: elm-lang.org
+    trigger: true
+  - get: elm-compiler
+    resource: elm-compiler-0.16
+  - get: elm-package
+    resource: elm-package-0.16
+  - task: build
+    file: elm-platform-ci/tasks/build-elm-lang.org.yml
