@@ -1,0 +1,15 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source: {repository: codesimple/elm, tag: '0.16'}
+inputs:
+- name: core
+run:
+  path: sh
+  args:
+  - -exc
+  - |
+    cd core
+    elm-make
+    bash tests/set-up-tests.sh
+    nodejs tests/test.js

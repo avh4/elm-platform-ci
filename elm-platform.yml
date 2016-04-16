@@ -4,6 +4,7 @@ groups:
   - elm-platform-0.16
   - elm-format
   - elm-format-rc
+  - elm-lang:core
 - name: master
   jobs:
   - elm-platform-master
@@ -114,6 +115,11 @@ resources:
   type: git
   source:
     uri: https://github.com/elm-lang/elm-repl.git
+    branch: master
+- name: elm-lang:core
+  type: git
+  source:
+    uri: https://github.com/elm-lang/core.git
     branch: master
 - name: publish-elm-format-rc
   type: s3
@@ -262,3 +268,11 @@ jobs:
       params:
         path: elm-format
         status: failure
+- name: elm-lang:core
+  plan:
+  - get: elm-platform-ci
+  - get: core
+    resource: elm-lang:core
+    trigger: true
+  - task: test
+    file: elm-platform-ci/tasks/build-elm-lang-core.yml
