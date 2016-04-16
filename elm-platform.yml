@@ -132,19 +132,11 @@ resources:
 jobs:
 - name: elm-format
   plan:
+  - get: elm-platform-ci
   - get: elm-format
     trigger: true
   - task: elm-format-tests
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: {repository: haskell, tag: "7.10.3"}
-      inputs:
-      - name: elm-format
-        path: .
-      run:
-        path: ./ci.sh
+    file: elm-platform-ci/tasks/build-elm-format.yml
 - name: elm-format-rc
   serial_groups: [elm-format-version]
   plan:
@@ -244,30 +236,23 @@ jobs:
     file: elm-platform-ci/tasks/build-elm-compiler.yml
 - name: elm-format-pr
   plan:
-  - get: elm-format-pr
+  - get: elm-platform-ci
+  - get: elm-format
+    resource: elm-format-pr
     trigger: true
   - put: elm-format-pr
     params:
-      path: elm-format-pr
+      path: elm-format
       status: pending
   - task: build
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: {repository: haskell, tag: "7.10.3"}
-      inputs:
-      - name: elm-format-pr
-        path: .
-      run:
-        path: ./ci.sh
+    file: elm-platform-ci/tasks/build-elm-format.yml
     on_success:
       put: elm-format-pr
       params:
-        path: elm-format-pr
+        path: elm-format
         status: success
     on_failure:
       put: elm-format-pr
       params:
-        path: elm-format-pr
+        path: elm-format
         status: failure
