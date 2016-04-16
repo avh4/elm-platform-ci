@@ -30,7 +30,7 @@ resources:
   type: git
   source:
     uri: https://github.com/avh4/elm-format.git
-    branch: concourse
+    branch: master
 - name: elm-format-version
   type: semver
   source:
@@ -132,11 +132,14 @@ resources:
 jobs:
 - name: elm-format
   plan:
-  - get: elm-platform-ci
   - get: elm-format
     trigger: true
-  - task: elm-format-tests
-    file: elm-platform-ci/tasks/build-elm-format.yml
+  - aggregate:
+    - task: linux
+      file: elm-format/ci/build-elm-format-linux.yml
+    - task: windows
+      tags: [haskell-7.10.3]
+      file: elm-format/ci/build-elm-format-windows.yml
 - name: elm-format-rc
   serial_groups: [elm-format-version]
   plan:
@@ -236,7 +239,6 @@ jobs:
     file: elm-platform-ci/tasks/build-elm-compiler.yml
 - name: elm-format-pr
   plan:
-  - get: elm-platform-ci
   - get: elm-format
     resource: elm-format-pr
     trigger: true
@@ -244,8 +246,12 @@ jobs:
     params:
       path: elm-format
       status: pending
-  - task: build
-    file: elm-platform-ci/tasks/build-elm-format.yml
+  - aggregate:
+    - task: linux
+      file: elm-format/ci/build-elm-format-linux.yml
+    - task: windows
+      tags: [haskell-7.10.3]
+      file: elm-format/ci/build-elm-format-windows.yml
     on_success:
       put: elm-format-pr
       params:
