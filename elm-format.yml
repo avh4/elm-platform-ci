@@ -1,0 +1,110 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: jtarchie/pr
+
+resources:
+- name: elm-platform-ci
+  type: git
+  source:
+    uri: https://github.com/avh4/elm-platform-ci.git
+    branch: master
+- name: elm-format
+  type: git
+  source:
+    uri: https://github.com/avh4/elm-format.git
+    branch: master
+- name: elm-format-version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:avh4/elm-format.git
+    branch: version
+    file: VERSION
+    private_key: {{github-private-key}}
+    initial_version: 0.3.0-alpha
+- name: publish-elm-format-rc
+  type: s3
+  source:
+    access_key_id: {{aws-access-key-id}}
+    secret_access_key: {{aws-secret-access-key}}
+    bucket: concourse-demo-elm-platform
+    region_name: us-west-2
+    versioned_file: elm-format-linux-x64
+- name: elm-format-pr
+  type: pull-request
+  source:
+    repo: avh4/elm-format
+    access_token: {{github-access-token}}
+
+jobs:
+- name: elm-format
+  plan:
+  - get: elm-format
+    trigger: true
+  - aggregate:
+    - task: linux
+      file: elm-format/ci/build-elm-format-linux.yml
+    - task: windows
+      tags: [haskell-7.10.3]
+      file: elm-format/ci/build-elm-format-windows.yml
+- name: elm-format-rc
+  serial_groups: [elm-format-version]
+  plan:
+  - get: elm-format
+    passed: [elm-format]
+    trigger: true
+  - get: elm-format-version
+    params: {pre: alpha-dev}
+  - task: build
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: haskell, tag: "7.10.3"}
+      inputs:
+      - name: elm-format
+      outputs:
+      - name: concourse-output
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          cd elm-format
+          cabal update
+          cabal install --only-dependencies
+          cabal install
+          ls -R
+          cp dist/build/elm-format/elm-format ../concourse-output/
+  - put: publish-elm-format-rc
+    params:
+      file: concourse-output/elm-format
+  - put: elm-format-version
+    params: {file: elm-format-version/number}
+- name: elm-format-pr
+  plan:
+  - get: elm-format
+    resource: elm-format-pr
+    trigger: true
+  - put: elm-format-pr
+    params:
+      path: elm-format
+      status: pending
+  - aggregate:
+    - task: linux
+      file: elm-format/ci/build-elm-format-linux.yml
+    - task: windows
+      tags: [haskell-7.10.3]
+      file: elm-format/ci/build-elm-format-windows.yml
+    on_success:
+      put: elm-format-pr
+      params:
+        path: elm-format
+        status: success
+    on_failure:
+      put: elm-format-pr
+      params:
+        path: elm-format
+        status: failure

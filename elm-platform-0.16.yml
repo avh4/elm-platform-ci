@@ -1,0 +1,83 @@
+resources:
+- name: elm-platform-ci
+  type: git
+  source:
+    uri: https://github.com/avh4/elm-platform-ci.git
+    branch: master
+- name: elm-compiler-0.16
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-compiler.git
+    branch: 0.16
+- name: elm-package-0.16
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-package.git
+    branch: 0.16
+- name: elm-make-0.16
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-make.git
+    branch: 0.16
+- name: elm-reactor-0.16
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-reactor.git
+    branch: 0.16
+- name: elm-repl-0.16
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-repl.git
+    branch: 0.16
+- name: elm-lang:core
+  type: git
+  source:
+    uri: https://github.com/elm-lang/core.git
+    branch: master
+- name: elm-lang.org
+  type: git
+  source:
+    uri: https://github.com/elm-lang/elm-lang.org.git
+    branch: master
+
+jobs:
+- name: elm-platform-0.16
+  plan:
+  - get: elm-platform-ci
+  - aggregate:
+    - get: elm-compiler
+      resource: elm-compiler-0.16
+      trigger: true
+    - get: elm-package
+      resource: elm-package-0.16
+      trigger: true
+    - get: elm-make
+      resource: elm-make-0.16
+      trigger: true
+    - get: elm-reactor
+      resource: elm-reactor-0.16
+      trigger: true
+    - get: elm-repl
+      resource: elm-repl-0.16
+      trigger: true
+  - task: build-elm-platform
+    file: elm-platform-ci/tasks/build-elm-compiler.yml
+- name: elm-lang:core
+  plan:
+  - get: elm-platform-ci
+  - get: core
+    resource: elm-lang:core
+    trigger: true
+  - task: test
+    file: elm-platform-ci/tasks/build-elm-lang-core.yml
+- name: elm-lang.org
+  plan:
+  - get: elm-platform-ci
+  - get: elm-lang.org
+    trigger: true
+  - get: elm-compiler
+    resource: elm-compiler-0.16
+  - get: elm-package
+    resource: elm-package-0.16
+  - task: build
+    file: elm-platform-ci/tasks/build-elm-lang.org.yml
