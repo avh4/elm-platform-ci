@@ -1,0 +1,1 @@
+.\concourse_windows_amd64.exe worker --work-dir C:\concourse-worker --tsa-host 192.168.100.4 --tsa-public-key .\host_key.pub --tsa-worker-private-key .\worker_key --bind-ip 127.0.0.1 --baggageclaim-bind-ip 127.0.0.1 --tag haskell-7.10.3

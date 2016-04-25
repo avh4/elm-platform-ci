@@ -1,0 +1,6 @@
+/host_key
+/host_key.pub
+/worker_key
+/worker_key.pub
+/.vagrant
+/concourse_windows_amd64.exe
